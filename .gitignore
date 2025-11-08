@@ -1,4 +1,19 @@
+# python venv
 .venv/
+env/
+venv/
+
+# local data (big csv)
 data/
+
+# local trained models (we download from GitHub Release in prod)
+models/
+
+# python cache
 __pycache__/
 *.pyc
+
+# editor stuff
+.vscode/
+.idea/
+.DS_Store

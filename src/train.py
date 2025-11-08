@@ -31,22 +31,19 @@ def build_pipeline(ngram_low, ngram_high, min_df, max_features, alpha):
         max_features=max_features,
     )
     clf = OneVsRestClassifier(MultinomialNB(alpha=alpha))
-    return Pipeline([
-        ("tfidf", vec),
-        ("clf", clf),
-    ])
+    return Pipeline([("tfidf", vec), ("clf", clf)])
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", type=str, default=str(DEFAULT_DATA),
-                    help="Path to mega_symptom_dataset_500k.csv")
+                    help="path to mega_symptom_dataset_500k.csv")
     ap.add_argument("--model_out", type=str, default=str(DEFAULT_OUT),
-                    help="Where to save joblib model")
+                    help="where to save model_small.joblib")
     ap.add_argument("--val_split", type=float, default=0.1)
     ap.add_argument("--seed", type=int, default=42)
 
-    # vectorizer / model size controls
+    # vectorizer knobs
     ap.add_argument("--ngram_low", type=int, default=3)
     ap.add_argument("--ngram_high", type=int, default=5)
     ap.add_argument("--min_df", type=int, default=3)
@@ -57,7 +54,6 @@ def main():
 
     data_path = Path(args.data)
     df = pd.read_csv(data_path)
-    # labels: "a|b|c" -> ["a","b","c"]
     df["labels"] = df["labels"].apply(lambda s: s.split("|"))
 
     X_train, X_val, y_train, y_val = train_test_split(
@@ -79,9 +75,10 @@ def main():
         args.max_features,
         args.alpha,
     )
+
     pipe.fit(X_train, Y_train)
 
-    # quick val top-1 accuracy
+    # quick top-1 accuracy on val
     proba = pipe.predict_proba(X_val)
     top1_idx = proba.argmax(axis=1)
     correct = int(sum(Y_val[i, top1_idx[i]] == 1 for i in range(len(X_val))))
@@ -101,21 +98,21 @@ def main():
             "max_features": args.max_features,
         },
         "nb": {
-            "alpha": args.alpha,
+            "alpha": args.alpha
         },
     }
 
     out_path = Path(args.model_out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # save with compression to keep size lower
+    # strong compression to keep file smaller
     joblib.dump(
         {"pipeline": pipe, "mlb": mlb, "meta": meta},
         out_path,
         compress=("xz", 9),
     )
 
-    print(f"[OK] saved model → {out_path}")
+    print(f"[OK] saved model -> {out_path}")
     print(f"[OK] top-1 val acc: {acc*100:.2f}% on {len(X_val)} samples")
     print(json.dumps(meta, ensure_ascii=False, indent=2))
 
