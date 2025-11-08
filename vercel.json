@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/predict.py": {
+      "runtime": "python3.12"
+    }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "api/predict.py" }
+  ]
+}
