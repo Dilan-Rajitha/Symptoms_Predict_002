@@ -2,7 +2,7 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional, Dict, Any
+import traceback
 
 import requests
 import joblib
@@ -10,12 +10,14 @@ import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional, Dict, Any
 
 app = FastAPI(title="Symptoms Predict API")
 
+# allow CORS (mobile/web)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,12 +119,15 @@ def simple_triage(top):
     if t0["id"] in {"ami", "meningitis", "heatstroke", "dka", "stroke", "seizure"} and t0["prob"] > 0.35:
         return {"level": "EMERGENCY", "why": ["Potential life-threatening pattern"]}
 
+    # same-day urgent list
     if t0["id"] in {"appendicitis", "angina", "dengue_fever", "kidney_stones", "cholera", "typhoid"} and t0["prob"] > 0.35:
         return {"level": "URGENT_TODAY", "why": [f"{t0['name']} suspicion"]}
 
+    # low-confidence fallback
     if t0["prob"] < 0.25:
         return {"level": "SELF_CARE", "why": ["Low-risk pattern; monitor"]}
 
+    # default moderate risk
     return {"level": "GP_24_48H", "why": ["Moderate risk pattern"]}
 
 

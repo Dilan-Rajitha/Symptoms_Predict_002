@@ -14,10 +14,12 @@ DEFAULT_MODEL = ROOT / "models" / "model_small.joblib"
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", type=str, default=str(DEFAULT_DATA))
-    ap.add_argument("--model", type=str, default=str(DEFAULT_MODEL))
+    ap.add_argument("--data", type=str, default=str(DEFAULT_DATA),
+                    help="csv to evaluate on")
+    ap.add_argument("--model", type=str, default=str(DEFAULT_MODEL),
+                    help="trained joblib model")
     ap.add_argument("--limit", type=int, default=0,
-                    help="evaluate on first N rows (0 = all)")
+                    help="evaluate only first N rows (0 = all)")
     args = ap.parse_args()
 
     df = pd.read_csv(args.data)
@@ -41,10 +43,10 @@ def main():
 
     print(f"Top-1 accuracy: {acc*100:.2f}% on {len(texts)} samples")
 
-    # show first 3 predictions
+    # show a few sample predictions
     for i in range(min(3, len(texts))):
-        preds = mlb.classes_[top1_idx[i]]
-        print(f"• {texts[i][:80]} → {preds}")
+        pred_label = mlb.classes_[top1_idx[i]]
+        print(f"• {texts[i][:80]} → {pred_label}")
 
 
 if __name__ == "__main__":
