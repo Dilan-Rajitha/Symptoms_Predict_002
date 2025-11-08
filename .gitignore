@@ -1,4 +1,18 @@
+# venv
 .venv/
-data/
+env/
+venv/
+
+# python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# local data & models (we download from GitHub Releases)
+data/
+models/
+
+# editor stuff
+.vscode/
+.idea/
